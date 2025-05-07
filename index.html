@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bus - University Bus Tracking System</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      background-image: url('bg.jpg'); /* Add your image path here */
+      background-size: cover; /* Ensures the image covers the entire viewport */
+      background-position: center center; /* Centers the background image */
+      background-attachment: fixed; /* Keeps the background fixed while scrolling */
+      display: flex;
+      height: 100vh;
+      color: #333;
+    }
+    
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Login Page -->
+    <div id="login-page" class="page active">
+      <div class="login-container">
+        <div class="login-header">
+          <img src="bus.jpg" alt="My Bus Logo" class="logo">
+          <h1>My Bus</h1>
+          <p>University Bus Tracking System</p>
+        </div>
+        <div class="login-form">
+          <div class="input-group">
+            <i class="fas fa-user"></i>
+            <input type="text" id="username" placeholder="Student ID / Email">
+          </div>
+          <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Password">
+          </div>
+          <div class="remember-forgot">
+            <label>
+              <input type="checkbox"> Remember me
+            </label>
+            <a href="#" class="forgot-password">Forgot Password?</a>
+          </div>
+          
+          <button id="login-btn" class="primary-btn" onclick="window.location.href='busDashboard.html'">Login</button>
+
+       
+          
+
+          <div class="register-link">
+            <p>Don't have an account? <a href="#">Register</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main App (Hidden initially) -->
+    <div id="main-app" class="page">
+      <!-- Sidebar Navigation -->
+      <nav class="sidebar">
+        <div class="sidebar-header">
+          <img src="bus.jpg" alt="My Bus Logo" class="logo">
+          <h2>My Bus</h2>
+        </div>
+        <ul class="nav-links">
+          <li class="nav-item active" data-target="dashboard">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+          </li>
+          <li class="nav-item" data-target="schedule">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Bus Schedule</span>
+          </li>
+          <li class="nav-item" data-target="payment">
+            <i class="fas fa-credit-card"></i>
+            <span>Payment</span>
+          </li>
+          <li class="nav-item" data-target="profile">
+            <i class="fas fa-user-circle"></i>
+            <span>Profile</span>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <button id="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <header class="top-bar">
+          <button id="toggle-sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="user-info">
+            <span id="user-name">John Doe</span>
+            <img src="/placeholder.svg?height=32&width=32" alt="User" class="user-avatar">
+          </div>
+        </header>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+          <div class="section-header">
+            <h2>Live Bus Tracking</h2>
+            <div class="date-time">
+              <span id="current-date">March 5, 2025</span>
+              <span id="current-time">11:39 AM</span>
+            </div>
+          </div>
+          
+          <div class="dashboard-grid">
+            <div class="map-container">
+              <div id="map"></div>
+              <div class="map-controls">
+                <button id="locate-me" class="map-btn">
+                  <i class="fas fa-location-arrow"></i>
+                </button>
+                <button id="refresh-map" class="map-btn">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="bus-status">
+              <h3>Active Buses</h3>
+              <div class="bus-list">
+                <!-- Bus items will be dynamically added here -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="quick-actions">
+            <div class="action-card">
+              <i class="fas fa-ticket-alt"></i>
+              <h4>Buy Ticket</h4>
+            </div>
+            <div class="action-card">
+              <i class="fas fa-route"></i>
+              <h4>Plan Route</h4>
+            </div>
+            <div class="action-card">
+              <i class="fas fa-bell"></i>
+              <h4>Set Alert</h4>
+            </div>
+            <div class="action-card">
+              <i class="fas fa-history"></i>
+              <h4>History</h4>
+            </div>
+          </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section id="schedule" class="content-section">
+          <div class="section-header">
+            <h2>Bus Schedule</h2>
+            <div class="schedule-filter">
+              <select id="route-select">
+                <option value="all">All Routes</option>
+                <option value="north">North Campus</option>
+                <option value="south">South Campus</option>
+                <option value="east">East Campus</option>
+                <option value="west">West Campus</option>
+              </select>
+              <input type="date" id="schedule-date">
+            </div>
+          </div>
+          
+          <div class="schedule-container">
+            <div class="schedule-tabs">
+              <button class="tab-btn active" data-day="weekday">Weekdays</button>
+              <button class="tab-btn" data-day="weekend">Weekends</button>
+              <button class="tab-btn" data-day="holiday">Holidays</button>
+            </div>
+            
+            <div class="schedule-table-container">
+              <table class="schedule-table">
+                <thead>
+                  <tr>
+                    <th>Route</th>
+                    <th>Bus ID</th>
+                    <th>Departure</th>
+                    <th>Arrival</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="schedule-body">
+                  <!-- Schedule rows will be dynamically added here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Payment Section -->
+        <section id="payment" class="content-section">
+          <div class="section-header">
+            <h2>Payment</h2>
+          </div>
+          
+          <div class="payment-container">
+            <div class="payment-options">
+              <div class="payment-card active">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Single Ticket</span>
+              </div>
+              <div class="payment-card">
+                <i class="fas fa-calendar-week"></i>
+                <span>Weekly Pass</span>
+              </div>
+              <div class="payment-card">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Monthly Pass</span>
+              </div>
+              <div class="payment-card">
+                <i class="fas fa-star"></i>
+                <span>Semester Pass</span>
+              </div>
+            </div>
+            
+            <div class="payment-details">
+              <h3>Single Ticket</h3>
+              
+              <div class="ticket-options">
+                <div class="ticket-type">
+                  <input type="radio" id="one-way" name="ticket-type" checked>
+                  <label for="one-way">One Way(2500) </label>
+                </div>
+                <div class="ticket-type">
+                  <input type="radio" id="round-trip" name="ticket-type">
+                  <label for="round-trip">Round Trip(3000) </label>
+                </div>
+              </div>
+              
+              <div class="route-selection">
+                <div class="form-group">
+                  <label>From</label>
+                  <select id="from-location">
+                    <option value="">Select pickup point</option>
+                    <option value="main">Main Campus</option>
+                    <option value="north">North Campus</option>
+                    <option value="library">Library</option>
+                    <option value="dorms">Dormitories</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>To</label>
+                  <select id="to-location">
+                    <option value="">Select destination</option>
+                    <option value="main">Main Campus</option>
+                    <option value="north">North Campus</option>
+                    <option value="library">Library</option>
+                    <option value="dorms">Dormitories</option>
+                  </select>
+                </div>
+              </div>
+             
+              
+              <div class="payment-methods">
+                <h4>Payment Method</h4>
+                <div class="payment-method-options">
+                  <div class="payment-method active">
+                    <input type="radio" id="credit-card" name="payment-method" checked>
+                    <label for="credit-card">
+                      <i class="fas fa-credit-card"></i>
+                      Credit Card
+                    </label>
+                  </div>
+                  <div class="payment-method">
+                    <input type="radio" id="paypal" name="payment-method">
+                    <label for="paypal">
+                      <i class="fab fa-paypal"></i>
+                      PayPal
+                    </label>
+                  </div>
+                  <div class="payment-method">
+                    <input type="radio" id="student-account" name="payment-method">
+                    <label for="student-account">
+                      <i class="fas fa-university"></i>
+                      Student Account
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <button class="primary-btn pay-btn">Pay Now</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile" class="content-section">
+          <div class="section-header">
+            <h2>My Profile</h2>
+          </div>
+          
+          <div class="profile-container">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <img src="/placeholder.svg?height=100&width=100" alt="Profile Picture">
+                <button class="change-avatar-btn">
+                  <i class="fas fa-camera"></i>
+                </button>
+              </div>
+              <div class="profile-info">
+                <h3 id="profile-name">Rohit singh</h3>
+                <p id="student-id">Student ID :2203051050488</p>
+                <p id="student-email">2203051050488@university.ac.in</p>
+              </div>
+            </div>
+            
+            <div class="profile-details">
+              <div class="profile-section">
+                <h4>Personal Information</h4>
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" value="John Doe">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" value="(555) 123-4567">
+                  </div>
+                  <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" value="1998-05-15">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Address</label>
+                  <input type="text" value="123 University Ave, Campus Dorm #456">
+                </div>
+              </div>
+              
+              <div class="profile-section">
+                <h4>Account Settings</h4>
+                <div class="form-group">
+                  <label>Email</label>
+                  <input type="email" value="john.doe@university.edu">
+                </div>
+                <div class="form-group">
+                  <label>Password</label>
+                  <input type="password" value="********">
+                  <button class="change-password-btn">Change Password</button>
+                </div>
+                <div class="form-group">
+                  <label>Notification Preferences</label>
+                  <div class="checkbox-group">
+                    <label>
+                      <input type="checkbox" checked> Email Notifications
+                    </label>
+                    <label>
+                      <input type="checkbox" checked> SMS Notifications
+                    </label>
+                    <label>
+                      <input type="checkbox" checked> Push Notifications
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="profile-section">
+                <h4>Payment Methods</h4>
+                <div class="saved-payment-methods">
+                  <div class="payment-method-card">
+                    <div class="card-icon">
+                      <i class="fab fa-cc-visa"></i>
+                    </div>
+                    <div class="card-details">
+                      <p class="card-name">Visa ending in 4567</p>
+                      <p class="card-expiry">Expires 09/26</p>
+                    </div>
+                    <div class="card-actions">
+                      <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                      <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </div>
+                  <button class="add-payment-method">
+                    <i class="fas fa-plus"></i> Add Payment Method
+                  </button>
+                </div>
+              </div>
+              
+              <div class="profile-actions">
+                <button class="primary-btn save-profile-btn">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+
+  <script>
+    // Wait for the DOM content to be loaded before attaching the event listener
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the login button by its ID
+  const loginButton = document.getElementById('login-btn');
+
+  // Add click event listener to the login button
+  loginButton.addEventListener('click', function() {
+    // Redirect to dashboard.html when the button is clicked
+    window.location.href = 'busDashboard.html';
+  });
+});
+
+  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="script.js"></script>
+</body>
+</html>
+
